@@ -12,11 +12,19 @@ parser.add_argument('--cascaded', help='integer, how many devices concated', typ
 parser.add_argument('--brightness', help='integer from 1 to 16', type=int, default=7)
 parser.add_argument('--vertical', help='boolean, device concated in which direction', type=bool, default=False)
 args = parser.parse_args()
+print args
 
-device = led.sevensegment(
+device  = getattr(led, args.device)(
     cascaded    =   args.cascaded,
     vertical    =   args.vertical
 )
+
+# device = led.sevensegment(
+#     cascaded    =   args.cascaded,
+#     vertical    =   args.vertical
+# )
+
+
 
 # this is how to call a function from string|variable
 # brightness = getattr(device, args.brightness)

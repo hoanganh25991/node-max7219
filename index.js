@@ -56,7 +56,7 @@ var max7219 = function(options){
 		options.message = message;
 		console.log('drawText based on', options);
 		// var cmd = 'sudo python ./drawText';
-		console.log(__dirname);
+		// console.log(__dirname);
 		// var cmd = 'sudo python ' + __dirname + '/bin/drawText.py';
 		var cmd = util.format('sudo python %s/bin/drawText.py', __dirname);
 		Object.keys(options).forEach(function(key){
@@ -69,7 +69,9 @@ var max7219 = function(options){
 			 
 			cmd += util.format(' --%s %s', key, options[key]);
 		});
+
 		console.log(cmd);
+
 		previousProcess = exec(cmd, function(err, stdout){
 			console.log(stdout);
 		});
