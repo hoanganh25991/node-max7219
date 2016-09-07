@@ -2,40 +2,21 @@
 import max7219.led as led
 import time
 from max7219.font import proportional, SINCLAIR_FONT, TINY_FONT, CP437_FONT
-# from random import randrange
 
-# device = led.matrix(cascaded=1)
-device = led.matrix(cascaded=18,vertical=True)
-# device.orientation(180);
-device.show_message("MAX7219 LED Matrix Demo", font=proportional(CP437_FONT))
-def main(argv):
-	message = ''
-	brightness = 1
-	cascade = 4
-	try:
-		opts, args = getopt.getopt(argv,"hm:b:",["message=","brightness="])
-	except getopt.GetoptError:
-		print 'matrix_single.py -m <message> -b <brightness 1-16>'
-		sys.exit(2)
-	for opt, arg in opts:
-		if opt == '-h':
-			print 'matrix_single.py -m <message> -b <brightness 1-16>'
-			sys.exit()
-		elif opt in ("-m", "--message"):
-			message = arg
-		elif opt in ("-b", "--brightness"):
-			brightness = arg
-		elif opt in ("-c", "--cascade"):
-			cascade = arg
-	print 'Message is ', message
-	print 'Brightness is ', brightness
-	print 'Cascade is ', cascade
-	
-	device = led.matrix(cascaded=cascade, vertical=True)
-	# device = led.sevensegment(cascaded=cascade, vertical=True)
-	device.brightness(brightness)
-	device.show_message(message, font=proportional(CP437_FONT))
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--device', help='string, sevensegment or matrix', type=str, default='sevensegment')
+parser.add_argument('--message', help='string, "hello world"', type=str, default='hello world')
+parser.add_argument('--cascaded', help='integer, how many devices concated', type=int, default=1)
+parser.add_argument('--brightness', help='integer from 1 to 16', type=int, default=7)
+parser.add_argument('--vertical', help='boolean, device concated in which direction', type=bool, default=False)
+args = parser.parse_args()
 
-if __name__ == "__main__":
-	main(sys.argv[1:])
+device = led[args.device](
+    cascaded    =   args.cascaded,
+    brightness  =   args.brightness,
+    vertical    =   args.vertical
+)
+
+device.show_message(args.message)
