@@ -106,7 +106,7 @@ var max7219 = function(options){
 			
 			var optionStr =  util.format(format, key, val);
 
-			key == 'vertical' ? (val ? optionStr = ' --vertical' : optionStr = '') : false;
+			key == 'vertical' ? (val ? optionStr = ' --vertical True' : optionStr = '') : false;
 			
 
 			// if(key == 'vertical'){
@@ -116,7 +116,7 @@ var max7219 = function(options){
 			// args.push(optionStr);
 		});
 
-		// console.log(cmd);
+		console.log(cmd);
 
 		previousProcess = exec(cmd);
 	};
