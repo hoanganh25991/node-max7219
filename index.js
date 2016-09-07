@@ -61,9 +61,13 @@ var max7219 = function(options){
 		var cmd = util.format('sudo python %s/bin/drawText.py', __dirname);
 		Object.keys(options).forEach(function(key){
 			// cmd += ' --' + key + ' ' + options[key];
-			var format = ' --%s %s';
-			key == 'message' ? format = ' --%s "%s"' : false;
-			cmd += util.format(format, key, options[key]);
+			var val = options[key] ;
+
+			key == 'message' ? val = '\"' + val + '\"' : false;
+
+			key == 'vertical' ? val = val ? 'True' : 'False' : false;
+			 
+			cmd += util.format(' --%s %s', key, options[key]);
 		});
 		console.log(cmd);
 		previousProcess = exec(cmd, function(err, stdout){
