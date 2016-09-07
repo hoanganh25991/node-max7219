@@ -2,9 +2,9 @@ var util = require('util');
 var max7219 = function(options){
 	var originOptions = {
 		device: 'sevensegment',
-		cascade: 1,
-		brightness: 1,
-		vertical: true
+		cascaded: 2,
+		brightness: 7,
+		vertical: false
 	};
 	/**
 	 * default options
@@ -61,13 +61,20 @@ var max7219 = function(options){
 		var cmd = util.format('sudo python %s/bin/drawText.py', __dirname);
 		Object.keys(options).forEach(function(key){
 			// cmd += ' --' + key + ' ' + options[key];
+			var format = ' --%s %s';
 			var val = options[key] ;
 
 			key == 'message' ? val = '\"' + val + '\"' : false;
+			
+			var optionStr =  util.format(format, key, val);
 
-			key == 'vertical' ? val = val ? 'True' : 'False' : false;
-			 
-			cmd += util.format(' --%s %s', key, options[key]);
+			key == 'vertical' ? (val ? optionStr = ' --vertical' : optionStr = '') : false;
+			
+
+			// if(key == 'vertical'){
+			// 	val = val ? val = 'True' : val = 'False'
+			// }
+			cmd += optionStr;
 		});
 
 		console.log(cmd);
