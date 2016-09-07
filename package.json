@@ -1,6 +1,6 @@
 {
   "name": "node-max7219",
-  "version": "1.0.12",
+  "version": "1.0.16",
   "description": "max7219 for raspberry pi with node, by wrapper a really cool python package rm-hull/max7219",
   "main": "index.js",
   "bin": {
@@ -20,5 +20,8 @@
     "pi"
   ],
   "author": "Anh Le Hoang",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "ps-tree": "^1.1.0"
+  }
 }

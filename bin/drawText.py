@@ -14,7 +14,7 @@ parser.add_argument('--vertical', help='boolean, device concated in which direct
 args = parser.parse_args()
 # print args
 # args.vertical=False
-print args.vertical
+# print args.vertical
 # device = led.sevensegment(cascaded=2)
 
 # device = getattr(led, args.device)(cascaded=args.cascaded, vertical=args.vertical)

@@ -49,16 +49,54 @@ var max7219 = function(options){
 	 * execute python command
 	 */
 	var exec = require('child_process').exec;
+	// var spawn = require('child_process').spawn;
 	var previousProcess;
-	previousProcess ? previousProcess.kill() : false;
+	// previousProcess ? previousProcess.kill() : false;
+	var psTree = require('ps-tree');
+	var kill = function (pid, signal, callback) {
+		    signal   = signal || 'SIGKILL';
+		    callback = callback || function () {};
+		    var killTree = true;
+		    if(killTree) {
+		        psTree(pid, function (err, children) {
+		            [pid].concat(
+		                children.map(function (p) {
+		                    return p.PID;
+		                })
+		            ).forEach(function (tpid) {
+		                try { process.kill(tpid, signal) }
+		                catch (ex) { }
+		            });
+		            callback();
+		        });
+		    } else {
+		        try { process.kill(pid, signal) }
+		        catch (ex) { }
+		        callback();
+		    }
+		};
 
 	var drawText = function(message){
+		previousProcess ? function(){
+			// console.log('kill process');
+			// previousProcess.stdin.pause();
+			// previousProcess.kill('SIGKILL');
+			kill(previousProcess.pid);
+		}() : false;
+
 		options.message = message;
-		console.log('drawText based on', options);
+		// console.log('drawText based on', options);
 		// var cmd = 'sudo python ./drawText';
 		// console.log(__dirname);
 		// var cmd = 'sudo python ' + __dirname + '/bin/drawText.py';
 		var cmd = util.format('sudo python %s/bin/drawText.py', __dirname);
+		// var cmd = 'sudo';
+
+		// var args = [];
+
+		// args.push('python');
+		// args.push(__dirname + '/bin/drawText.py');
+		
 		Object.keys(options).forEach(function(key){
 			// cmd += ' --' + key + ' ' + options[key];
 			var format = ' --%s %s';
@@ -75,13 +113,12 @@ var max7219 = function(options){
 			// 	val = val ? val = 'True' : val = 'False'
 			// }
 			cmd += optionStr;
+			// args.push(optionStr);
 		});
 
-		console.log(cmd);
+		// console.log(cmd);
 
-		previousProcess = exec(cmd, function(err, stdout){
-			console.log(stdout);
-		});
+		previousProcess = exec(cmd);
 	};
 
 	var getOptions = function(){
