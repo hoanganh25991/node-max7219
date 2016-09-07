@@ -2,7 +2,6 @@ var util = require('util');
 var max7219 = function(options){
 	var originOptions = {
 		device: 'sevensegment',
-		message: 'hello world',
 		cascade: 1,
 		brightness: 1,
 		vertical: true
@@ -53,7 +52,8 @@ var max7219 = function(options){
 	var previousProcess;
 	previousProcess ? previousProcess.kill() : false;
 
-	var drawText = function(){
+	var drawText = function(message){
+		options.message = message;
 		console.log('drawText based on', options);
 		// var cmd = 'sudo python ./drawText';
 		console.log(__dirname);
