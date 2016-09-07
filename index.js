@@ -1,5 +1,6 @@
 var max7219 = function(options){
 	var originOptions = {
+		device: 'sevensegment',
 		message: 'hello world',
 		cascade: 1,
 		brightness: 1,
@@ -8,16 +9,17 @@ var max7219 = function(options){
 	/**
 	 * default options
 	 */
-	var defaultOptions = {
-		message: 'hello world',
-		cascade: 1,
-		brightness: 1,
-		vertical: true
-	};
+	// var defaultOptions = {
+	// 	device: 'sevensegment',
+	// 	message: 'hello world',
+	// 	cascade: 1,
+	// 	brightness: 1,
+	// 	vertical: true
+	// };
 	/**
-	 * in next version
+	 * clone defaultOption from original
 	 */
-	// var defaultOptions = {};
+	var defaultOptions = Object.assign({}, originOptions);
 	// Object.keys(originOptions).forEach(function(key){
 	// 	defaultOptions[key] = originOptions[key];
 	// });
@@ -47,6 +49,8 @@ var max7219 = function(options){
 	 * execute python command
 	 */
 	var exec = require('child_process').exec;
+	var previousProcess;
+	previousProcess ? previousProcess.kill() : false;
 
 	var drawText = function(){
 		console.log('drawText based on', options);
@@ -54,7 +58,7 @@ var max7219 = function(options){
 		console.log(__dirname);
 		var cmd = 'sudo python ' + __dirname + '/bin/drawText.py';
 		console.log(cmd);
-		exec(cmd, function(err, stdout){
+		previousProcess = exec(cmd, function(err, stdout){
 			console.log(stdout);
 		});
 	};
