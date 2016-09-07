@@ -1,3 +1,4 @@
+var util = require('util');
 var max7219 = function(options){
 	var originOptions = {
 		device: 'sevensegment',
@@ -56,7 +57,14 @@ var max7219 = function(options){
 		console.log('drawText based on', options);
 		// var cmd = 'sudo python ./drawText';
 		console.log(__dirname);
-		var cmd = 'sudo python ' + __dirname + '/bin/drawText.py';
+		// var cmd = 'sudo python ' + __dirname + '/bin/drawText.py';
+		var cmd = util.format('sudo python %s/bin/drawText.py', __dirname);
+		Object.keys(options).forEach(function(key){
+			// cmd += ' --' + key + ' ' + options[key];
+			var format = ' --%s %s';
+			key == 'message' ? format = ' --%s "%s"' : false;
+			cmd += util.format(format, key, options[key]);
+		});
 		console.log(cmd);
 		previousProcess = exec(cmd, function(err, stdout){
 			console.log(stdout);
