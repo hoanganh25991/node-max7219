@@ -22,10 +22,11 @@
   "author": "Anh Le Hoang",
   "license": "MIT",
   "dependencies": {
+    "debug": "^2.2.0",
     "ps-tree": "^1.1.0"
   },
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/hoanganh25991/node-max7219"
+    "type": "git",
+    "url": "https://github.com/hoanganh25991/node-max7219"
   }
 }

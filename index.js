@@ -162,7 +162,7 @@ var max7219 = function(options){
 		drawText: drawText,
 		getOptions: getOptions,
 		setOptions: setOptions,
-		getDefaultOption: getDefaultOption
+		getXyz: getXyz
 	};
 };
 
