@@ -53,16 +53,17 @@ def move_right(self, text, font=None, delay=0.05, always_scroll=False):
     if not scroll:
         self.flush()
 
-device.scrollRight = scrollRight
+device.move_right = move_right
 
-def setFont(fontName='DEFAULT_FONT'){
+def set_font(fontName='DEFAULT_FONT'):
     return {
         'DEFAULT_FONT':     DEFAULT_FONT,
         'SINCLAIR_FONT':    proportional(SINCLAIR_FONT),
         'TINY_FONT':        proportional(TINY_FONT),
         'CP437_FONT':       proportional(CP437_FONT)
     }[fontName]
-}
+
+# device.set_font = set_font
 
 getattr(device, 'brightness')(args.brightness)
 
@@ -94,7 +95,7 @@ if args.method == 'show_message':
     options = args.options
     msg = options[0]
     getattr(device, 'invert')( int(options[2]) )
-    getattr(device, 'show_message')(msg, device.setFont(options[1]))
+    getattr(device, 'show_message')(msg, set_font(options[1]))
 
 # letter: {
 #           deviceId: 0,
@@ -125,4 +126,4 @@ if args.method == 'move_right':
     options = args.options
     msg = options[0]
     getattr(device, 'invert')( int(options[2]) )
-    getattr(device, 'move_right')(device, msg, device.setFont(options[1]))
+    getattr(device, 'move_right')(device, msg, set_font(options[1]))
