@@ -175,47 +175,53 @@ var max7219 = function(options){
 
 	var exec = require('child_process').exec;
 	
+	// var drawText = function(message){
+	// 	stopF();
+	// 	xyz.message = message;
+	// 	var cmd = util.format('sudo python %s/bin/drawText.py', __dirname);
+	// 	Object.keys(xyz).forEach(function(key){
+	// 		var format = ' --%s %s';
+	// 		var val = xyz[key];
+
+	// 		key == 'message' ? val = '\"' + val + '\"' : false;
+
+	// 		key == 'vertical' ?
+	// 			function(){
+	// 				val == true ? (val = 'True') : function(){
+	// 					key =''; val = ''; format = '%s%s'
+	// 				}();
+	// 			}() : false;
+
+	// 		key == 'options' ? function(){
+	// 			format = '%s%s';
+	// 			key = '';
+	// 			val = '';
+	// 		}() : false;
+
+	// 		key == 'methods' ? function(){
+	// 			format = '%s%s';
+	// 			key = '';
+	// 			val = '';
+	// 		}() : false;
+
+	// 		key == 'run' ? function(){
+	// 			format = '%s%s';
+	// 			key = '';
+	// 			val = '';
+	// 		}() : false;
+
+	// 		cmd += util.format(format, key, val);
+	// 	});
+
+	// 	info(cmd);
+
+	// 	p = exec(cmd);
+	// };
+	
 	var drawText = function(message){
-		stopF();
-		xyz.message = message;
-		var cmd = util.format('python %s/bin/drawText.py', __dirname);
-		Object.keys(xyz).forEach(function(key){
-			var format = ' --%s %s';
-			var val = xyz[key];
-
-			key == 'message' ? val = '\"' + val + '\"' : false;
-
-			key == 'vertical' ?
-				function(){
-					val == true ? (val = 'True') : function(){
-						key =''; val = ''; format = '%s%s'
-					}();
-				}() : false;
-
-			key == 'options' ? function(){
-				format = '%s%s';
-				key = '';
-				val = '';
-			}() : false;
-
-			key == 'methods' ? function(){
-				format = '%s%s';
-				key = '';
-				val = '';
-			}() : false;
-
-			key == 'run' ? function(){
-				format = '%s%s';
-				key = '';
-				val = '';
-			}() : false;
-
-			cmd += util.format(format, key, val);
+		max7219.showMessage({
+			text: message
 		});
-
-		info(cmd);
-
-		p = exec(cmd);
 	};
 
 	var mapNodePy = {
@@ -238,7 +244,7 @@ var max7219 = function(options){
 	};
 
 	var buildCmd = function(){
-		var cmd = util.format('python %s/bin/max7219.py', __dirname);
+		var cmd = util.format('sudo python %s/bin/index.py', __dirname);
 
 		//for options to create DEVICE
 		// info(xyz);
@@ -299,6 +305,7 @@ var max7219 = function(options){
 
 		p.on('close', function(){
 			info(util.format('On <%s>: '), status);
+			info('task completed');
 			callback();
 		});
 	};

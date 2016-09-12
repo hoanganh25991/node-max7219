@@ -47,7 +47,7 @@ if args.method == 'write_text':
 
 	for idex, letter in enumerate(result):
 		pos = args.cascaded - idex
-		getattr(device, 'letter')(pos, letter) if pos > 0
+		getattr(device, 'letter')(pos, letter) if pos >= 0 else False
 		
 
 if args.method == 'show_message':
