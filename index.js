@@ -136,18 +136,21 @@ var max7219 = function(options){
 
 	options = options ? options : {};
 
-
 	max7219.getOptions = function(){
 		return xyz;
 	};
 
 	var setOptions = function(opt){
+		(opt.brightness > 16 || opt.brightness < 0) ? function(){
+			error(util.format('brightness should in-range 0-15, current: %s'), opt.brightness);
+			info('set brightness to default 7');
+		}() : false;
 		Object.assign(xyz.options, opt);
 		//only accept option base on device
 		var device = xyz.options.device;
 		devices.includes(device) ? false : function(){
 			error(util.format('%s, not support\n, only allow: %s', device, devices));
-			error(util.format('use default: %s', devices[0]);
+			error(util.format('use default: %s', devices[0]));
 			xyz.options.device = 'sevensegment';
 		}();
 
@@ -160,8 +163,6 @@ var max7219 = function(options){
 
 	init();
 
-	var exec = require('child_process').exec;
-	
 	var p;
 
 	var stopF = function(){
@@ -175,9 +176,9 @@ var max7219 = function(options){
 	var drawText = function(message){
 		stopF();
 
-		options.message = message;
+		xyz.message = message;
 		var cmd = util.format('sudo python %s/bin/drawText.py', __dirname);
-		Object.keys(options).forEach(function(key){
+		Object.keys(xyz).forEach(function(key){
 			var format = ' --%s %s';
 			var val = options[key];
 
@@ -193,13 +194,19 @@ var max7219 = function(options){
 					val = '';
 				}();
 
+			key == 'options' ? function(){
+				format = '%s%s';
+				key = '';
+				val = '';
+			}() : false;
+
 			key == 'methods' ? function(){
 				format = '%s%s';
 				key = '';
 				val = '';
 			}() : false;
 
-			key == 'run' ? ? function(){
+			key == 'run' ? function(){
 				format = '%s%s';
 				key = '';
 				val = '';
@@ -233,7 +240,7 @@ var max7219 = function(options){
 	};
 
 	var buildCmd = function(){
-		cmd = util.format('python %s/bin/max7219.py', __dirname);
+		var cmd = util.format('python %s/bin/max7219.py', __dirname);
 
 		//for options to create DEVICE
 		Object.keys(xyz.options).forEach(function(key){
@@ -255,25 +262,31 @@ var max7219 = function(options){
 
 		//for run command
 		var runCmd = xyz.run;
-		cmd += util.format(' --method %s', runCmd):
+		cmd += util.format(' --method %s', runCmd);
 		Object.keys(xyz.methods[runCmd]).forEach(function(key){
 			var val = xyz.methods[runCmd][key];
+
+			key == 'message' ? val = '\"' + val + '\"' : false;
+
 			cmd += util.format(' %s', val);
 		});
 
 		info(cmd);
 
 		return cmd;
-	}
+	};
 
 	Object.keys(mapNodePy).forEach(function(node){
 		max7219[node] = function(options){
+			console.log('call method %s', node);
 			stopF();
 			var py = mapNodePy[node];
 			// xyz.methods[py] = options;
 			Object.assign(xyz.methods[py], options);
 			xyz.run = py;
-			p = exec(buildCmd(), function(error, stdout){
+
+			// buildCmd();
+			p = exec(buildCmd(), function(err, stdout){
 				error(stdout);
 			});
 		};
@@ -292,6 +305,22 @@ var max7219 = function(options){
 			callback();
 		});
 	};
+
+	return max7219;
 };
+
+// process.env.DEBUG = 'info';
+//
+// var a = max7219({
+// 	device: 'matrix',
+// 	cascaded: 4,
+// 	vertical: true,
+// 	brightness: 15
+// });
+// // console.log(a);
+// a.showMessage({
+// 	text: 'hoanganh',
+// 	scroll: 'up'
+// });
 
 module.exports = max7219;
