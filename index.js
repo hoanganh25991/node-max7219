@@ -136,22 +136,20 @@ var max7219 = function(options){
 
 	options = options ? options : {};
 
-	max7219.getOptions = function(){
-		return xyz;
-	};
-
 	var setOptions = function(opt){
 		(opt.brightness > 16 || opt.brightness < 0) ? function(){
 			error(util.format('brightness should in-range 0-15, current: %s'), opt.brightness);
 			info('set brightness to default 7');
+			opt.brightness = 7;
 		}() : false;
 		Object.assign(xyz.options, opt);
 		//support old version by call opt on xyz
 		Object.assign(xyz, opt);
+		// info(xyz);
 		//only accept option base on device
 		var device = xyz.options.device;
 		devices.includes(device) ? false : function(){
-			error(util.format('%s, not support\n, only allow: %s', device, devices));
+			error(util.format('%s, not support, only allow: %s', device, devices));
 			error(util.format('use default: %s', devices[0]));
 			xyz.options.device = 'sevensegment';
 		}();
@@ -178,7 +176,7 @@ var max7219 = function(options){
 	// var drawText = function(message){
 	// 	stopF();
 	// 	xyz.message = message;
-	// 	var cmd = util.format('sudo python %s/bin/drawText.py', __dirname);
+	// 	var cmd = util.format('python %s/bin/drawText.py', __dirname);
 	// 	Object.keys(xyz).forEach(function(key){
 	// 		var format = ' --%s %s';
 	// 		var val = xyz[key];
@@ -244,7 +242,7 @@ var max7219 = function(options){
 	};
 
 	var buildCmd = function(){
-		var cmd = util.format('sudo python %s/bin/index.py', __dirname);
+		var cmd = util.format('python %s/bin/index.py', __dirname);
 
 		//for options to create DEVICE
 		// info(xyz);
@@ -262,15 +260,13 @@ var max7219 = function(options){
 			cmd += util.format(format, key, val);
 		});
 
-		info(cmd);
-
 		//for run command
 		var runCmd = xyz.run;
 		cmd += util.format(' --method %s', runCmd);
 		Object.keys(xyz.methods[runCmd]).forEach(function(key){
 			var val = xyz.methods[runCmd][key];
 
-			key == 'message' ? val = '\"' + val + '\"' : false;
+			val = '\"' + val + '\"';
 
 			cmd += util.format(' %s', val);
 		});
@@ -282,6 +278,17 @@ var max7219 = function(options){
 
 	Object.keys(mapNodePy).forEach(function(node){
 		max7219[node] = function(options){
+			//sanity for options as text-message to display
+			options = options || {};
+			info(util.format('method: \033[01;32m%s\033[0m, options: \033[01;32mG%s\033[0m', node, options));
+
+			(typeof options == 'string') ? (function(){
+				var tmp = options;
+				options = {};
+				node != 'letter' ? options.text = tmp : options.letter = tmp;
+			})() : false;
+
+			//acturally run
 			stopF();
 			var py = mapNodePy[node];
 			// xyz.methods[py] = options;
@@ -289,28 +296,38 @@ var max7219 = function(options){
 			xyz.run = py;
 
 			// buildCmd();
-			p = exec(buildCmd(), function(err, stdout){
-				error(stdout);
+			p = exec(buildCmd(), function(err, stdout, stderr){
+				error('stdout: ', stdout);
+				error('stderr: ', stderr);
 			});
 		};
 	});
 
 	max7219.on = function(status, callback){
-		var supported = ['close', 'finished'];
+		var supported = ['close', 'exit', 'finished'];
 
 		if(supported.indexOf(status) < 0){
 			error(util.format('On <%s>: Event not supported', status));
 			return;
 		}
 
-		p.on('close', function(){
-			info(util.format('On <%s>: '), status);
-			info('task completed');
-			callback();
-		});
+		p ? function(){
+			p.on('exit', function(){
+				info(util.format('On <%s>: '), status);
+				callback();
+			});
+		}() : 
+		function(){
+			// console.log('current, no event to listen on');
+		}();
 	};
 
 	max7219.drawText = drawText;
+	max7219.setOptions = setOptions;
+	max7219.setOptions = setOptions;
+	max7219.getOptions = function(){
+		return xyz;
+	};
 	return max7219;
 };
 
