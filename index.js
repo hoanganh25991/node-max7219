@@ -1,168 +1,296 @@
 var util = require('util');
-var max7219 = function(options){
-	var originOptions = {
+
+var info = require('debug')('info');
+
+var error = require('debug')('error');
+
+var psTree = require('ps-tree');
+
+var kill = function(pid, signal, callback){
+	signal = signal || 'SIGKILL';
+	callback = callback || function(){
+		};
+	var killTree = true;
+	if(killTree){
+		psTree(pid, function(err, children){
+			[pid].concat(
+				children.map(function(p){
+					return p.PID;
+				})
+			).forEach(function(tpid){
+				try{
+					process.kill(tpid, signal)
+				}
+				catch(ex){
+				}
+			});
+			callback();
+		});
+	}else{
+		try{
+			process.kill(pid, signal)
+		}
+		catch(ex){
+		}
+		callback();
+	}
+};
+
+/**
+ * base on rm-hull/max7219
+ *
+ * below is what matrix|sevensegment can do
+ */
+
+const devices = ['sevensegment', 'matrix'];
+
+const commonOption = {
+	device: 'sevensegment',
+	cascaded: 2,
+	vertical: false,
+	options: {
 		device: 'sevensegment',
 		cascaded: 2,
-		brightness: 7,
 		vertical: false
-	};
-	/**
-	 * default options
-	 */
-	// var defaultOptions = {
-	// 	device: 'sevensegment',
-	// 	message: 'hello world',
-	// 	cascade: 1,
-	// 	brightness: 1,
-	// 	vertical: true
-	// };
-	/**
-	 * clone defaultOption from original
-	 */
-	var defaultOptions = Object.assign({}, originOptions);
-	// Object.keys(originOptions).forEach(function(key){
-	// 	defaultOptions[key] = originOptions[key];
-	// });
+	},
+	methods: {
+		clear: {
+			deviceId: null
+		},
+		flush: {},
+		brightnessX: 7,
+		brightness: {
+			intensity: 7
+		},
+		set_byte: {
+			deviceId: 0,
+			position: 1,
+			value: 1,
+			redraw: true
+		},
+		rotate_left: {
+			redrawn: true
+		},
+		rotate_right: {
+			redrawn: true
+		},
+		scroll_left: {
+			redrawn: true
+		},
+		scroll_right: {
+			redrawn: true
+		}
+	}
+};
 
-	//push options into default {}
-	//when use not submit
-	//in node 6x, we can set default for params
+const deviceMethod = {
+	sevensegment: {
+		letter: {
+			deviceId: 0,
+			position: 1,
+			char: 'a',
+			dot: false,
+			redrawn: true
+		},
+		write_number: {
+			deviceId: 0,
+			value: 1,
+			base: 10,
+			decimalPlaces: 0,
+			zeroPad: false,
+			leftJustify: false
+		},
+		write_text: {
+			deviceId: 0,
+			text: 'a'
+		},
+		show_message: {
+			text: 'a',
+			delay: 0.4
+		}
+	},
+	matrix: {
+		letter: {
+			deviceId: 0,
+			letter: 'A',
+			orientation: 0,
+			invert: 0
+		},
+		show_message: {
+			text: 'hello world',
+			scroll: 'left',
+			invert: 0
+		},
+		write_text: {
+			text: 'hello world',
+			orientation: 0,
+			invert: 0
+		}
+	}
+};
+
+var max7219 = function(options){
+	var max7219 = this;
+
+	var xyz = Object.assign({}, commonOption);
+
 	options = options ? options : {};
 
-	// //Object.keys return empty array []
-	// //if options is NOT an object or $%^
-	// Object.keys(options).forEach(function (key) {
-	// 	//let user-options override default
-	// 	defaultOptions[key] = options[key];
-	// });
-	/**
-	 * by define setOptions for use easy custommize
-	 * initialize options by call setOptions
-	 */
 
-	/**
-	 * store exec process
-	 * to terminate it when run a new one
-	 */
-
-	/**
-	 * execute python command
-	 */
-	var exec = require('child_process').exec;
-	// var spawn = require('child_process').spawn;
-	var previousProcess;
-	// previousProcess ? previousProcess.kill() : false;
-	var psTree = require('ps-tree');
-	var kill = function (pid, signal, callback) {
-		    signal   = signal || 'SIGKILL';
-		    callback = callback || function () {};
-		    var killTree = true;
-		    if(killTree) {
-		        psTree(pid, function (err, children) {
-		            [pid].concat(
-		                children.map(function (p) {
-		                    return p.PID;
-		                })
-		            ).forEach(function (tpid) {
-		                try { process.kill(tpid, signal) }
-		                catch (ex) { }
-		            });
-		            callback();
-		        });
-		    } else {
-		        try { process.kill(pid, signal) }
-		        catch (ex) { }
-		        callback();
-		    }
-		};
-
-	var drawText = function(message){
-		previousProcess ? function(){
-			// console.log('kill process');
-			// previousProcess.stdin.pause();
-			// previousProcess.kill('SIGKILL');
-			kill(previousProcess.pid);
-		}() : false;
-
-		options.message = message;
-		// console.log('drawText based on', options);
-		// var cmd = 'sudo python ./drawText';
-		// console.log(__dirname);
-		// var cmd = 'sudo python ' + __dirname + '/bin/drawText.py';
-		var cmd = util.format('sudo python %s/bin/drawText.py', __dirname);
-		// var cmd = 'sudo';
-
-		// var args = [];
-
-		// args.push('python');
-		// args.push(__dirname + '/bin/drawText.py');
-		
-		Object.keys(options).forEach(function(key){
-			// cmd += ' --' + key + ' ' + options[key];
-			var format = ' --%s %s';
-			var val = options[key] ;
-
-			key == 'message' ? val = '\"' + val + '\"' : false;
-			
-			var optionStr =  util.format(format, key, val);
-
-			key == 'vertical' ? (val ? optionStr = ' --vertical True' : optionStr = '') : false;
-			
-
-			// if(key == 'vertical'){
-			// 	val = val ? val = 'True' : val = 'False'
-			// }
-			cmd += optionStr;
-			// args.push(optionStr);
-		});
-
-		console.log(cmd);
-
-		previousProcess = exec(cmd);
-	};
-
-	var getOptions = function(){
-		return options;
-	};
-
-	var getDefaultOption = function(){
-		//like an original options
-		//we ALWAYS return this one
-		//instead of modified defaultOptions
-		return {
-			message: 'hello world',
-			cascade: 1,
-			brightness: 1,
-			vertical: true
-		};
+	max7219.getOptions = function(){
+		return xyz;
 	};
 
 	var setOptions = function(opt){
-		//Object.keys return empty array []
-		//if options is NOT an object or $%^
-		Object.keys(opt).forEach(function(key){
-			//let user-options override default
-			defaultOptions[key] = opt[key];
-		});
-		//assign back to options
-		options = defaultOptions;
+		Object.assign(xyz.options, opt);
+		//only accept option base on device
+		var device = xyz.options.device;
+		devices.includes(device) ? false : function(){
+			error(util.format('%s, not support\n, only allow: %s', device, devices));
+			error(util.format('use default: %s', devices[0]);
+			xyz.options.device = 'sevensegment';
+		}();
+
+		Object.assign(xyz.methods, deviceMethod[device]);
 	};
 
-	/**
-	 * initialize needded object
-	 * @return {[type]} [description]
-	 */
 	var init = function(){
 		setOptions(options);
 	};
 
 	init();
 
-	return {
-		drawText: drawText,
-		getOptions: getOptions,
-		setOptions: setOptions,
-		getDefaultOption: getDefaultOption
+	var exec = require('child_process').exec;
+	
+	var p;
+
+	var stopF = function(){
+		!p ? false : function(){
+			kill(p.pid);
+		}();
+	};
+
+	var exec = require('child_process').exec;
+	
+	var drawText = function(message){
+		stopF();
+
+		options.message = message;
+		var cmd = util.format('sudo python %s/bin/drawText.py', __dirname);
+		Object.keys(options).forEach(function(key){
+			var format = ' --%s %s';
+			var val = options[key];
+
+			key == 'message' ? val = '\"' + val + '\"' : false;
+
+			key == 'vertical' ?
+				function(){
+					val = 'True';
+				}() :
+				function(){
+					format = '%s%s';
+					key = '';
+					val = '';
+				}();
+
+			key == 'methods' ? function(){
+				format = '%s%s';
+				key = '';
+				val = '';
+			}() : false;
+
+			key == 'run' ? ? function(){
+				format = '%s%s';
+				key = '';
+				val = '';
+			}() : false;
+
+			cmd += util.format(format, key, val);
+		});
+
+		info(cmd);
+
+		p = exec(cmd);
+	};
+
+	var mapNodePy = {
+		clear: 'clear',
+		flush: 'flush',
+		setByte: 'setByte',
+		rotateLeft: 'rotate_left',
+		rotateRight: 'rotate_right',
+		scrollLeft: 'scroll_left',
+		scrollRight: 'scroll_right',
+		letter: 'letter',
+		writeNumber: 'write_number',
+		writeText: 'write_text',
+		showMessage: 'show_message',
+		scrollUp: 'scroll_up',
+		scrollDown: 'scroll_down',
+		pixel: 'pixel',
+		invert: 'invert',
+		orientation: 'orientation'
+	};
+
+	var buildCmd = function(){
+		cmd = util.format('python %s/bin/max7219.py', __dirname);
+
+		//for options to create DEVICE
+		Object.keys(xyz.options).forEach(function(key){
+			var format = ' --%s %s';
+			var val = xyz.options[key];
+
+			key == 'vertical' ?
+				function(){
+					val = 'True';
+				}() :
+				function(){
+					format = '%s%s';
+					key = '';
+					val = '';
+				}();
+
+			cmd += util.format(format, key, val);
+		});
+
+		//for run command
+		var runCmd = xyz.run;
+		cmd += util.format(' --method %s', runCmd):
+		Object.keys(xyz.methods[runCmd]).forEach(function(key){
+			var val = xyz.methods[runCmd][key];
+			cmd += util.format(' %s', val);
+		});
+
+		info(cmd);
+
+		return cmd;
+	}
+
+	Object.keys(mapNodePy).forEach(function(node){
+		max7219[node] = function(options){
+			stopF();
+			var py = mapNodePy[node];
+			// xyz.methods[py] = options;
+			Object.assign(xyz.methods[py], options);
+			xyz.run = py;
+			p = exec(buildCmd(), function(error, stdout){
+				error(stdout);
+			});
+		};
+	});
+
+	max7219.on = function(status, callback){
+		var supported = ['close', 'finished'];
+
+		if(supported.indexOf(status) < 0){
+			error(util.format('On <%s>: Event not supported', status));
+			return;
+		}
+
+		p.on('close', function(){
+			info(util.format('On <%s>: '), status);
+			callback();
+		});
 	};
 };
 
