@@ -7,10 +7,12 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--device', help='string, sevensegment or matrix', type=str, default='sevensegment')
-parser.add_argument('--message', help='string, "hello world"', type=str, default='hello world')
 parser.add_argument('--cascaded', help='integer, how many devices concated', type=int, default=1)
 parser.add_argument('--brightness', help='integer from 1 to 16', type=int, default=7)
 parser.add_argument('--vertical', help='boolean, device concated in which direction', type=bool, default=False)
+
+parser.add_argument('--method', help='which method called', type=str, default='show_message')
+parser.add_argument('options', metavar='O', type=str, nargs='+', help='options of method')
 args = parser.parse_args()
 # print args
 # args.vertical=False
