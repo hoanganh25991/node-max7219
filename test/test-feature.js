@@ -45,10 +45,14 @@ var max7219 = Max7219(options);
  * old feauture should work
  */
 // max7219.drawText('message');
-// max7219.showMessage({
-// 	text: 'message',
-// 	scroll: 'up'
-// });
+
+/**
+ * test showMessage
+ */
+max7219.showMessage({
+	text: 'message',
+	font: 'TINY_FONT'
+});
 
 // max7219.on('close', function(){
 // 	console.log('event: close');
@@ -64,12 +68,10 @@ var max7219 = Max7219(options);
 
 /**
  * test setOptions
- * @type {[type]}
  */
 // max7219.setOptions({
-// 	brightness: 255
+// 	brightness: 1
 // });
-
 
 // max7219.showMessage({
 // 	text: 'message'
@@ -101,8 +103,8 @@ var max7219 = Max7219(options);
 /**
  * test on debug info|error
  */
-max7219.setOptions({
-	device: 'abc'
-});
+// max7219.setOptions({
+// 	device: 'abc'
+// });
 
-max7219.showMessage('message');
+// max7219.showMessage('message');
