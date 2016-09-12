@@ -2,6 +2,7 @@
 import max7219.led as led
 import time
 from max7219.font import proportional, SINCLAIR_FONT, TINY_FONT, CP437_FONT
+from max7219.font import DEFAULT_FONT
 
 import argparse
 
@@ -16,8 +17,69 @@ parser.add_argument('options', metavar='O', type=str, nargs='+', help='options o
 args = parser.parse_args()
 
 # print args
+def scroll_left(self):
+    del self._buffer[0]
+    self._buffer.append(0)
+def scroll_right(self):
+    del self._buffer[-1]
+    self._buffer.insert(0, 0)
+def scroll_up(self):
+        self._buffer = [value >> 1 for value in self._buffer]
+def scroll_down(self):
+    self._buffer = [(value << 1) & 0xff for value in self._buffer]
+def show_message(self, text, direction='left', font=None, delay=0.05, always_scroll=False):
+    if not font:
+        font = DEFAULT_FONT
+
+    display_length = self.NUM_DIGITS * self._cascaded
+    src = [c for ascii_code in text for c in font[ord(ascii_code)]]
+    scroll = always_scroll or len(src) > display_length
+    if scroll:
+        # Add some spaces on (same number as cascaded devices) so that the
+        # message scrolls off to the left completely.
+        src += [c for ascii_code in ' ' * self._cascaded
+                for c in font[ord(ascii_code)]]
+    else:
+        # How much margin we need on the left so it's centered
+        margin = int((display_length - len(src))/2)
+        # Reset the buffer so no traces of the previous message are left
+        self._buffer = [0] * display_length
+    direction = 'scroll_' + direction
+    del self._buffer[0]
+    self._buffer.append(0)
+    del self._buffer[0]
+    self._buffer.append(0)
+    del self._buffer[0]
+    self._buffer.append(0)
+    del self._buffer[0]
+    self._buffer.append(0)
+    del self._buffer[0]
+    self._buffer.append(0)
+    del self._buffer[0]
+    self._buffer.append(0)
+    del self._buffer[0]
+    self._buffer.append(0)
+    del self._buffer[0]
+    self._buffer.append(0)
+    del self._buffer[0]
+    self._buffer.append(0)
+    del self._buffer[0]
+    self._buffer.append(0)
+    for pos, value in enumerate(src):
+        if scroll:
+            time.sleep(delay)
+            getattr(self, direction)(redraw=False)
+            # self.scroll_left(redraw=False)
+            self._buffer[-1] = value
+            self.flush()
+        else:
+            self._buffer[margin+pos] = value
+    if not scroll:
+        self.flush()
 
 device = getattr(led, args.device)(cascaded=args.cascaded, vertical=args.vertical)
+
+device.show_message = show_message
 
 getattr(device, 'brightness')(args.brightness)
 
@@ -48,9 +110,12 @@ if args.method == 'write_text':
 if args.method == 'show_message':
 	options = args.options
 	msg = options[0]
-	scroll = 'scroll_' + options[1]
-	getattr(device, 'show_message')(msg)
-	getattr(device, scroll)()
+	scroll = options[1]
+	# print scroll
+	getattr(device, 'invert')(int(options[2]))
+	getattr(device, 'show_message')(device, msg, scroll)
+	# getattr(device, scroll)()
+	# device.scroll_right()
 
 # letter: {
 # 			deviceId: 0,
