@@ -146,6 +146,8 @@ var max7219 = function(options){
 			info('set brightness to default 7');
 		}() : false;
 		Object.assign(xyz.options, opt);
+		//support old version by call opt on xyz
+		Object.assign(xyz, opt);
 		//only accept option base on device
 		var device = xyz.options.device;
 		devices.includes(device) ? false : function(){
@@ -175,24 +177,20 @@ var max7219 = function(options){
 	
 	var drawText = function(message){
 		stopF();
-
 		xyz.message = message;
-		var cmd = util.format('sudo python %s/bin/drawText.py', __dirname);
+		var cmd = util.format('python %s/bin/drawText.py', __dirname);
 		Object.keys(xyz).forEach(function(key){
 			var format = ' --%s %s';
-			var val = options[key];
+			var val = xyz[key];
 
 			key == 'message' ? val = '\"' + val + '\"' : false;
 
 			key == 'vertical' ?
 				function(){
-					val = 'True';
-				}() :
-				function(){
-					format = '%s%s';
-					key = '';
-					val = '';
-				}();
+					val == true ? (val = 'True') : function(){
+						key =''; val = ''; format = '%s%s'
+					}();
+				}() : false;
 
 			key == 'options' ? function(){
 				format = '%s%s';
@@ -243,22 +241,22 @@ var max7219 = function(options){
 		var cmd = util.format('python %s/bin/max7219.py', __dirname);
 
 		//for options to create DEVICE
+		// info(xyz);
 		Object.keys(xyz.options).forEach(function(key){
 			var format = ' --%s %s';
 			var val = xyz.options[key];
 
 			key == 'vertical' ?
 				function(){
-					val = 'True';
-				}() :
-				function(){
-					format = '%s%s';
-					key = '';
-					val = '';
-				}();
+					val == true ? (val = 'True') : function(){
+						key =''; val = ''; format = '%s%s'
+					}();
+				}() : false;
 
 			cmd += util.format(format, key, val);
 		});
+
+		info(cmd);
 
 		//for run command
 		var runCmd = xyz.run;
@@ -278,7 +276,6 @@ var max7219 = function(options){
 
 	Object.keys(mapNodePy).forEach(function(node){
 		max7219[node] = function(options){
-			console.log('call method %s', node);
 			stopF();
 			var py = mapNodePy[node];
 			// xyz.methods[py] = options;
@@ -306,6 +303,7 @@ var max7219 = function(options){
 		});
 	};
 
+	max7219.drawText = drawText;
 	return max7219;
 };
 
