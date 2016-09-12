@@ -17,17 +17,15 @@ parser.add_argument('options', metavar='O', type=str, nargs='+', help='options o
 args = parser.parse_args()
 
 # print args
-def scroll_left(self):
-    del self._buffer[0]
-    self._buffer.append(0)
-def scroll_right(self):
-    del self._buffer[-1]
-    self._buffer.insert(0, 0)
-def scroll_up(self):
-        self._buffer = [value >> 1 for value in self._buffer]
-def scroll_down(self):
-    self._buffer = [(value << 1) & 0xff for value in self._buffer]
-def show_message(self, text, direction='left', font=None, delay=0.05, always_scroll=False):
+
+device = getattr(led, args.device)(cascaded=args.cascaded, vertical=args.vertical)
+
+def move_right(self, text, font=None, delay=0.05, always_scroll=False):
+    """
+    Shows a message on the device. If it's longer then the total width
+    (or always_scroll=True), it transitions the text message across the
+    devices from right-to-left.
+    """
     if not font:
         font = DEFAULT_FONT
 
@@ -44,95 +42,87 @@ def show_message(self, text, direction='left', font=None, delay=0.05, always_scr
         margin = int((display_length - len(src))/2)
         # Reset the buffer so no traces of the previous message are left
         self._buffer = [0] * display_length
-    direction = 'scroll_' + direction
-    del self._buffer[0]
-    self._buffer.append(0)
-    del self._buffer[0]
-    self._buffer.append(0)
-    del self._buffer[0]
-    self._buffer.append(0)
-    del self._buffer[0]
-    self._buffer.append(0)
-    del self._buffer[0]
-    self._buffer.append(0)
-    del self._buffer[0]
-    self._buffer.append(0)
-    del self._buffer[0]
-    self._buffer.append(0)
-    del self._buffer[0]
-    self._buffer.append(0)
-    del self._buffer[0]
-    self._buffer.append(0)
-    del self._buffer[0]
-    self._buffer.append(0)
     for pos, value in enumerate(src):
         if scroll:
             time.sleep(delay)
-            getattr(self, direction)(redraw=False)
-            # self.scroll_left(redraw=False)
-            self._buffer[-1] = value
+            self.scroll_right(redraw=False)
+            self._buffer[+1] = value
             self.flush()
         else:
             self._buffer[margin+pos] = value
     if not scroll:
         self.flush()
 
-device = getattr(led, args.device)(cascaded=args.cascaded, vertical=args.vertical)
+device.scrollRight = scrollRight
 
-device.show_message = show_message
+def setFont(fontName='DEFAULT_FONT'){
+    return {
+        'DEFAULT_FONT':     DEFAULT_FONT,
+        'SINCLAIR_FONT':    proportional(SINCLAIR_FONT),
+        'TINY_FONT':        proportional(TINY_FONT),
+        'CP437_FONT':       proportional(CP437_FONT)
+    }[fontName]
+}
 
 getattr(device, 'brightness')(args.brightness)
 
 # options from node
 
-# 		write_text: {
-# 			text: 'hello world',
-# 			orientation: 0,
-# 			invert: 0
-# 		}
+#       write_text: {
+#           text: 'hello world',
+#           orientation: 0,
+#           invert: 0
+#       }
 if args.method == 'write_text':
-	options = args.options
-	result = []
-	
-	for ch in options[0]:
-		result.append(ch)
-	getattr(device, 'orientation')(int(options[1]))
-	getattr(device, 'invert')(int(options[2]))
+    options = args.options
+    result = []
+    
+    for ch in options[0]:
+        result.append(ch)
+    getattr(device, 'orientation')(int(options[1]))
+    getattr(device, 'invert')(int(options[2]))
 
-	for idex, letter in enumerate(result):
-		getattr(device, 'letter')(idex, ord(letter)) if (idex <= args.cascaded - 1) else False
-		
-# 		show_message: {
-# 			text: 'hello world',
-# 			scroll: 'left',
-# 			invert: 0
-# 		},
+    for idex, letter in enumerate(result):
+        getattr(device, 'letter')(idex, ord(letter)) if (idex <= args.cascaded - 1) else False
+        
+#       show_message: {
+#           text: 'hello world',
+#           font: 'DEFAULT_FONT',
+#           invert: 0
+#       },
 if args.method == 'show_message':
-	options = args.options
-	msg = options[0]
-	scroll = options[1]
-	# print scroll
-	getattr(device, 'invert')(int(options[2]))
-	getattr(device, 'show_message')(device, msg, scroll)
-	# getattr(device, scroll)()
-	# device.scroll_right()
+    options = args.options
+    msg = options[0]
+    getattr(device, 'invert')( int(options[2]) )
+    getattr(device, 'show_message')(msg, device.setFont(options[1]))
 
 # letter: {
-# 			deviceId: 0,
-# 			letter: 'A',
-# 			orientation: 0,
-# 			invert: 0
-# 		},
+#           deviceId: 0,
+#           letter: 'A',
+#           orientation: 0,
+#           invert: 0
+#       },
 if args.method == 'letter':
-	options = args.options
+    options = args.options
 
-	result = []
-	for ch in options[1]:
-		result.append(ch)
-	getattr(device, 'orientation')(int(options[2]))
-	getattr(device, 'invert')(int(options[3]))
-	deviceId = options[0]
-	# print(result[0])
-	# print( str(result[0]) )
-	print('letter display SINGLE letter at deviceId') if len(result) else False
-	getattr(device, 'letter')( int(deviceId), ord(result[0]) )
+    result = []
+    for ch in options[1]:
+        result.append(ch)
+    getattr(device, 'orientation')(int(options[2]))
+    getattr(device, 'invert')(int(options[3]))
+    deviceId = options[0]
+    # print(result[0])
+    # print( str(result[0]) )
+    print('letter display SINGLE letter at deviceId') if len(result) else False
+    getattr(device, 'letter')( int(deviceId), ord(result[0]) )
+
+#       move_right: {
+#           text: 'hello world',
+#           font: 'DEFAULT_FONT',
+#           invert: 0
+#       },
+if args.method == 'move_right':
+    options = args.options
+    msg = options[0]
+    getattr(device, 'invert')( int(options[2]) )
+    getattr(device, 'move_right')(device, msg, device.setFont(options[1]))

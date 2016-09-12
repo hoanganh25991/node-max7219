@@ -118,12 +118,17 @@ const deviceMethod = {
 		},
 		show_message: {
 			text: 'hello world',
-			scroll: 'left',
+			font: 'DEFAULT_FONT',
 			invert: 0
 		},
 		write_text: {
 			text: 'hello world',
 			orientation: 0,
+			invert: 0
+		},
+		move_right: {
+			text: 'hello world',
+			font: 'DEFAULT_FONT',
 			invert: 0
 		}
 	}
@@ -238,7 +243,8 @@ var max7219 = function(options){
 		scrollDown: 'scroll_down',
 		pixel: 'pixel',
 		invert: 'invert',
-		orientation: 'orientation'
+		orientation: 'orientation',
+		moveRight: 'move_right'
 	};
 
 	var buildCmd = function(){

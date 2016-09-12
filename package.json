@@ -1,6 +1,6 @@
 {
   "name": "node-max7219",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "max7219 for raspberry pi with node, by wrapper a really cool python package rm-hull/max7219",
   "main": "index.js",
   "bin": {
